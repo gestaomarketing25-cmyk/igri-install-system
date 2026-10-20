@@ -6,6 +6,7 @@ import { requireUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    if(req.headers.get('x-attendance-token') !== process.env.ATENDIMENTO_ACCESS_TOKEN) return NextResponse.json({error:'Acesso negado.'},{status:403});
     const body = await req.json();
     if (!body.client_name || !body.address || !body.plan) return NextResponse.json({ error: 'Nome, endereço e plano são obrigatórios.' }, { status: 400 });
     const { recommendation, source } = await analyzeBriefing(body);
