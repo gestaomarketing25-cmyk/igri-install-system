@@ -18,7 +18,7 @@ const users = [
 for (const [username, displayName, role, password] of users) {
   if (!password) throw new Error(`Senha ausente para ${username}.`);
 
-  const email = `${username}@users.igri.local`;
+  const email = `${username}@igritelecom.com.br`;
   const supabase = createClient(url, anon, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
