@@ -1,0 +1,1 @@
+const label:any={pending:'Aguardando técnico',assigned:'Atribuída',in_progress:'Em execução',completed:'Concluída'};export default function Status({value}:{value:string}){return <span className={`status ${value}`}>{label[value]||value}</span>}
