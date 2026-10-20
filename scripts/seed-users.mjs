@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !service) throw new Error('Configure NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.');
+const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabase = createClient(url, service, { auth: { autoRefreshToken: false, persistSession: false } });
+if (!url || !anon) {
+  throw new Error('Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+}
 
 const users = [
   ['wanderson', 'Wanderson', 'technician', process.env.SEED_WANDERSON_PASSWORD],
@@ -16,23 +17,31 @@ const users = [
 
 for (const [username, displayName, role, password] of users) {
   if (!password) throw new Error(`Senha ausente para ${username}.`);
+
   const email = `${username}@users.igri.local`;
-  const { data: list, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  if (listError) throw listError;
-  let user = list.users.find(u => u.email === email);
-  if (!user) {
-    const { data, error } = await supabase.auth.admin.createUser({ email, password, email_confirm: true });
-    if (error) throw error;
-    user = data.user;
-    console.log(`Criado: ${username}`);
-  } else {
-    const { error } = await supabase.auth.admin.updateUserById(user.id, { password });
-    if (error) throw error;
-    console.log(`Atualizado: ${username}`);
-  }
-  const { error: profileError } = await supabase.from('profiles').upsert({
-    id: user.id, username, display_name: displayName, role, active: true
+  const supabase = createClient(url, anon, {
+    auth: { autoRefreshToken: false, persistSession: false }
   });
-  if (profileError) throw profileError;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username,
+        display_name: displayName,
+        app_role: role
+      }
+    }
+  });
+
+  if (error) {
+    const msg = String(error.message || '');
+    if (!/already|registered|exists/i.test(msg)) throw error;
+    console.log(`Já existente: ${username}`);
+  } else if (data.user) {
+    console.log(`Criado: ${username}`);
+  }
 }
-console.log('Usuários iniciais prontos.');
+
+console.log('Seed concluído.');
