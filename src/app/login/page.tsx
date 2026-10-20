@@ -18,7 +18,7 @@ function LoginContent() {
     setBusy(true);
     setE('');
     const { error } = await supabaseBrowser().auth.signInWithPassword({
-      email: `${u.trim().toLowerCase()}@users.igri.local`,
+      email: `${u.trim().toLowerCase()}@igritelecom.com.br`,
       password: p
     });
     setBusy(false);
