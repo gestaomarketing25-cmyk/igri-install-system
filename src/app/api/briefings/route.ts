@@ -11,7 +11,8 @@ export async function POST(req: Request) {
     const { recommendation, source } = await analyzeBriefing(body);
     const protocol = makeProtocol();
     const sb = supabaseAdmin();
-    const { data, error } = await sb.from('briefings').insert({ ...body, protocol, ai_recommendation: recommendation, ai_source: source, status: 'pending' }).select('*').single();
+    const initialStatus = body.assigned_technician ? 'assigned' : 'pending';
+    const { data, error } = await sb.from('briefings').insert({ ...body, protocol, ai_recommendation: recommendation, ai_source: source, status: initialStatus }).select('*').single();
     if (error) throw error;
     return NextResponse.json({ briefing: data });
   } catch (e:any) { return NextResponse.json({ error: e.message || 'Erro ao salvar briefing.' }, { status: 500 }); }
